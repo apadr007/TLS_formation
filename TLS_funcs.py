@@ -121,5 +121,61 @@ def possible_associations(position, layout):
 
     return new_list
 
+def update(oldPosition, newPosition, layout_dict, neighbors_dict):
+    ''' (tuple, tuple, dict, dict) -> NoneType
+
+    This function updates neighbor tracking dict (neighbor_tracking) based on which nodes
+    moved in the movement dict (layout_old)
+
+
+    1) remove node from move_count dict
+    2) remove it from neighbor_tracking dict
+    3) add it back to neighbor_tracking dict with new position by calling the possible_associations function
+
+
+    >>> oldPosi = (1, 2)
+    >>> newPosi = (2, 2)
+    >>> n_dict = {(1, 2):'NaN', (3, 2): 'NaN', (5, 5):'NaN', (2, 3): 'NaN'}
+    >>> lo_dict = { (1, 2): 19, (3, 2): 22, (5, 5): 100, (2, 2): 340, (2, 3): 120 }
+
+    # test for movement to nearby nodes
+    >>> update(oldPosition=oldPosi, newPosition=newPosi, layout_dict=lo_dict, neighbors_dict=n_dict)
+
+    # test updating the neighbor dict (n_dict) with the new neighbors for the node that moved (newPosi)
+    >>> n_dict[newPosi]
+    [(3, 2), (2, 3)]
+
+    # test updating the NEIGHBORS neigbhor in n_dict. If it updated correctly
+    # then n_dict[(3, 2)] = [(2, 2)] instead of 'NaN'
+    >>> n_dict[(3, 2)]
+    [(2, 2)]
+
+    # test for succesfully updating the neighbors of the neighbors
+    >>> n_dict[(2, 2)]
+    [(3, 2), (2, 3)]
+    '''
+
+    if oldPosition in layout_dict:
+        #move_count.pop(oldPosition)
+        neighbors_dict.pop(oldPosition)
+        layout_dict.pop(oldPosition)
+
+        # update neighbor_tracking dict with new position and neighbors
+        new_neighbor_positions = possible_associations(position=newPosition, layout=layout_dict)
+
+        # update the new node position with the new neighbors
+        neighbors_dict[newPosition] = new_neighbor_positions
+
+        # update the position of the NEIGHBORS neighbors: need to fix
+        for pos in new_neighbor_positions:
+            new_neighbor_position = possible_associations(position=pos, layout=layout_dict)
+            #print neighbors_dict[pos]
+            neighbors_dict[pos] = new_neighbor_position
+
+
+
+
+
+
 import doctest
 doctest.testmod(verbose=True)
