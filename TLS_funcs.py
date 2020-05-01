@@ -43,8 +43,6 @@ def find_node(node_position, neighbor_tracking, graph):
     if list_of_neighbors == 'NaN':
         return node_position
 
-
-
 def bind(node_position, neighbor_position, g):
     ''' (tuple, tuple, g) -> NoneType
 
@@ -57,7 +55,7 @@ def bind(node_position, neighbor_position, g):
 
     g.add_edge(node_1, node_2)
 
-def update_graph_position(g, layout_old):
+def initiate_graph_position(g, layout_old):
     ''' (graph, dict) -> NoneType
 
     This function updates the positions (name attribute) in the graph.
@@ -76,6 +74,8 @@ def update_graph_position(g, layout_old):
         g.vs[i]['position'] = key
         g.vs[i]['index'] = value
         i = i + 1
+
+
 
 
 def possible_associations(position, layout):
@@ -121,7 +121,7 @@ def possible_associations(position, layout):
 
     return new_list
 
-def update(oldPosition, newPosition, layout_dict, neighbors_dict):
+def update_neighbors(oldPosition, newPosition, layout_dict, neighbors_dict):
     ''' (tuple, tuple, dict, dict) -> NoneType
 
     This function updates neighbor tracking dict (neighbor_tracking) based on which nodes
@@ -158,7 +158,8 @@ def update(oldPosition, newPosition, layout_dict, neighbors_dict):
     if oldPosition in layout_dict:
         #move_count.pop(oldPosition)
         neighbors_dict.pop(oldPosition)
-        layout_dict.pop(oldPosition)
+        # I don't need to change layout_old because its being done in the Mover function
+        #layout_dict.pop(oldPosition)
 
         # update neighbor_tracking dict with new position and neighbors
         new_neighbor_positions = possible_associations(position=newPosition, layout=layout_dict)
@@ -171,6 +172,66 @@ def update(oldPosition, newPosition, layout_dict, neighbors_dict):
             new_neighbor_position = possible_associations(position=pos, layout=layout_dict)
             #print neighbors_dict[pos]
             neighbors_dict[pos] = new_neighbor_position
+
+
+def update_graph(G, layout, new_position, old_position):
+    ''' (igraph, dict, tuple, tuple) -> NoneType
+
+    Update graph attributes based on the node that has moved.
+
+    This function should run inside the main code.
+
+    The function initiate_graph_position should run at the beginning to initiate the graph attributes
+
+    >>> lo_dict = { (1, 2): 19, (3, 2): 22, (5, 5): 100, (2, 2): 340, (2, 3): 120 }
+    >>> old = (5, 5)
+    >>> new = (6, 5)
+    >>> G = Graph()
+    >>> G.add_vertices(5)
+    >>> initiate_graph_position(G, lo_dict)
+
+    # "move" a node in the layout dict
+    >>> lo_dict[new] = lo_dict.pop(old)
+
+    # get index of position
+    >>> old_position_index = G.vs['position'].index(old)
+
+    # check initial values
+    >>> G.vs[old_position_index]['position']
+    (5, 5)
+    >>> G.vs[old_position_index]['name']
+    '(5, 5)'
+    >>> G.vs[old_position_index]['index']
+    100
+
+    # update the attribute using update_graph
+    >>> update_graph(G=G, layout=lo_dict, new_position=new, old_position=old)
+
+    # test that I get new position
+    >>> G.vs[old_position_index]['position']
+    (6, 5)
+
+    # test that I get new name
+    >>> G.vs[old_position_index]['name']
+    '(6, 5)'
+
+    # test that I get new index
+    >>> G.vs[old_position_index]['index']
+    100
+
+    '''
+
+    # find the index of the position
+
+    graph_index = G.vs['position'].index(old_position)
+
+    # update each attribute
+    G.vs[graph_index]['name'] = str(new_position)
+    G.vs[graph_index]['position'] = new_position
+    G.vs[graph_index]['index'] = layout[new_position]
+
+
+
 
 
 
