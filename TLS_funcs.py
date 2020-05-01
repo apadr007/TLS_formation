@@ -128,7 +128,7 @@ def update_neighbors(oldPosition, newPosition, layout_dict, neighbors_dict):
     moved in the movement dict (layout_old)
 
 
-    1) remove node from move_count dict
+    1) remove node from move_count dict (!!!not updating this for now!!!)
     2) remove it from neighbor_tracking dict
     3) add it back to neighbor_tracking dict with new position by calling the possible_associations function
 
@@ -155,23 +155,28 @@ def update_neighbors(oldPosition, newPosition, layout_dict, neighbors_dict):
     [(3, 2), (2, 3)]
     '''
 
-    if oldPosition in layout_dict:
-        #move_count.pop(oldPosition)
-        neighbors_dict.pop(oldPosition)
-        # I don't need to change layout_old because its being done in the Mover function
-        #layout_dict.pop(oldPosition)
 
-        # update neighbor_tracking dict with new position and neighbors
-        new_neighbor_positions = possible_associations(position=newPosition, layout=layout_dict)
+    #move_count.pop(oldPosition)
+    #neighbors_dict.pop(oldPosition)
 
-        # update the new node position with the new neighbors
-        neighbors_dict[newPosition] = new_neighbor_positions
+    neighbor_tracking[newPosition] = neighbor_tracking[oldPosition]
+    del neighbor_tracking[oldPosition]
 
-        # update the position of the NEIGHBORS neighbors: need to fix
-        for pos in new_neighbor_positions:
-            new_neighbor_position = possible_associations(position=pos, layout=layout_dict)
-            #print neighbors_dict[pos]
-            neighbors_dict[pos] = new_neighbor_position
+    # I don't need to change layout_old because its being done in the Mover function
+    #layout_dict.pop(oldPosition)
+
+
+    # update neighbor_tracking dict with new position and neighbors
+    new_neighbor_positions = possible_associations(position=newPosition, layout=layout_dict)
+
+    # update the new node position with the new neighbors
+    neighbors_dict[newPosition] = new_neighbor_positions
+
+    # update the position of the NEIGHBORS neighbors: need to fix
+    for pos in new_neighbor_positions:
+        new_neighbor_position = possible_associations(position=pos, layout=layout_dict)
+        #print neighbors_dict[pos]
+        neighbors_dict[pos] = new_neighbor_position
 
 
 def update_graph(G, layout, new_position, old_position):
@@ -231,7 +236,54 @@ def update_graph(G, layout, new_position, old_position):
     G.vs[graph_index]['index'] = layout[new_position]
 
 
+def edge_selector(neigh_dict):
+    ''' (dict) -> tuple
 
+    Find a node with neighbors.
+
+    The selected node will be interegated for edge binding with its neighbors
+
+    neigh_dict should be the dict where neigbhors are kept
+
+
+
+    # test when there are neighbors
+    >>> neighbor_dic = { (1, 2): [(1, 3)], (5, 5): 'NaN', (1, 3): [(1, 2), (1, 4)], (1, 4): [(1, 3)] }
+    >>> output = edge_selector(neighbor_dic)
+    >>> output != 'NaN'
+    True
+
+    # test to make sure output is a tuple
+    >>> type(output)
+    <type 'tuple'>
+
+
+
+    # test when there are no neighbors
+    >>> neighbor_dic2 = { (1, 2): 'NaN', (5, 5): 'NaN', (1, 3): 'NaN', (1, 4): 'NaN' }
+    >>> output = edge_selector(neighbor_dic2)
+    >>> output == 'NaN'
+    True
+
+    '''
+
+    # set up range to loop through (at worst this function is O(n) )
+    index_options = range(0, len(neigh_dict) )
+    val = 'NaN'
+
+    for t in index_options:
+
+        # randomly collect matched key value pairs
+        key = random.choice(neigh_dict.keys() )
+        value = neigh_dict[key]
+
+        # if node contains neighbors (i.e, it's not 'NaN'), then choose the node
+        if value != 'NaN':
+            val = key
+            break
+
+    return val
+    
 
 
 
