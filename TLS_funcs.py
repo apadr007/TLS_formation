@@ -23,37 +23,56 @@ def find_node(node_position, neighbor_tracking, graph):
     (1, 3)
 
     '''
-    list_of_neighbors = neighbor_tracking[(node_position)]
 
-    #check to see which node has degree < 4
-    if list_of_neighbors != 'NaN':
 
-        node_names = []
+    if node_position in neighbor_tracking:
+        list_of_neighbors = neighbor_tracking[node_position]
 
-        for node in list_of_neighbors:
-            node_degrees = graph.vs.find(name= str(node) ).degree()
+        #check to see which node has degree < 4
+        if list_of_neighbors != 'NaN':
 
-            if node_degrees < 4:
-                node_names.append(node)
+            node_names = []
 
-        selected_node = random.choice(node_names)
-        return selected_node
+            for node in list_of_neighbors:
+                node_degrees = graph.vs.find(name= str(node) ).degree()
 
-    # if there aren't any available neighbors, return the node in question's position
-    if list_of_neighbors == 'NaN':
+                if node_degrees < 4:
+                    node_names.append(node)
+
+            selected_node = random.choice(node_names)
+            return node_position
+            
+        # if there aren't any available neighbors, return the node in question's position
+        if list_of_neighbors == 'NaN':
+            return node_position
+    else:
         return node_position
 
-def bind(node_position, neighbor_position, g):
+
+def bind(node_position, neighbor_position, G):
     ''' (tuple, tuple, g) -> NoneType
 
     Add an edge between two nodes.
 
+    # set up
+    >>> G = Graph()
+    >>> G.add_vertices(4)
+    >>> G.vs['name'] = ['(1, 2)', '(1, 3)', '(1, 4)', '(5, 5)']
+
+    #test for edge binding
+    >>> node_position = (1, 2)
+    >>> neighbor_position = (1, 3)
+    >>> bind(node_position, neighbor_position, G)
+    >>> G.degree()
+    [1, 1, 0, 0]
+
     '''
 
-    node_1 = g.vs['name'].index( str(node_position) )
-    node_2 = g.vs['name'].index( str(neighbor_position) )
+    node_1 = G.vs['name'].index( str(node_position) )
+    node_2 = G.vs['name'].index( str(neighbor_position) )
 
-    g.add_edge(node_1, node_2)
+    G.add_edge(node_1, node_2)
+
 
 def initiate_graph_position(g, layout_old):
     ''' (graph, dict) -> NoneType
@@ -158,25 +177,27 @@ def update_neighbors(oldPosition, newPosition, layout_dict, neighbors_dict):
 
     #move_count.pop(oldPosition)
     #neighbors_dict.pop(oldPosition)
-
-    neighbor_tracking[newPosition] = neighbor_tracking[oldPosition]
-    del neighbor_tracking[oldPosition]
-
-    # I don't need to change layout_old because its being done in the Mover function
-    #layout_dict.pop(oldPosition)
+    if oldPosition  in neighbor_tracking:
+        neighbor_tracking[newPosition] = neighbor_tracking[oldPosition]
+        del neighbor_tracking[oldPosition]
 
 
-    # update neighbor_tracking dict with new position and neighbors
-    new_neighbor_positions = possible_associations(position=newPosition, layout=layout_dict)
+        # I don't need to change layout_old because its being done in the Mover function
+        #layout_dict.pop(oldPosition)
 
-    # update the new node position with the new neighbors
-    neighbors_dict[newPosition] = new_neighbor_positions
+        # update neighbor_tracking dict with new position and neighbors
+        new_neighbor_positions = possible_associations(position=newPosition, layout=layout_dict)
 
-    # update the position of the NEIGHBORS neighbors: need to fix
-    for pos in new_neighbor_positions:
-        new_neighbor_position = possible_associations(position=pos, layout=layout_dict)
-        #print neighbors_dict[pos]
-        neighbors_dict[pos] = new_neighbor_position
+        # update the new node position with the new neighbors
+        neighbors_dict[newPosition] = new_neighbor_positions
+
+        # update the position of the NEIGHBORS neighbors: need to fix
+        for pos in new_neighbor_positions:
+            new_neighbor_position = possible_associations(position=newPosition, layout=layout_dict)
+            #print neighbors_dict[pos]
+            neighbors_dict[newPosition] = new_neighbor_position
+    else:
+        pass
 
 
 def update_graph(G, layout, new_position, old_position):
@@ -281,9 +302,10 @@ def edge_selector(neigh_dict):
         if value != 'NaN':
             val = key
             break
-
+        else:
+            pass
     return val
-    
+
 
 
 
